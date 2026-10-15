@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Camino Rosa</title>
+<style>
+:root{--bg:#fff7f5;--card:#ffffff;--ink:#3a2230;--soft:#7a5a6c;--rose:#c2185b;--rose-d:#8e1245;--line:#f0cfd9;--ok:#1b7a4b;--okbg:#e3f5ea;--warn:#8a5a00;--warnbg:#fff1cc;--bad:#b3261e;--badbg:#fde4e1;--leaf:#2f8f5b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241520;--card:#32202c;--ink:#fbe9f0;--soft:#d9b3c5;--rose:#ff7eb0;--rose-d:#ffb3d0;--line:#563646;--ok:#7fe0a8;--okbg:#1d3a2b;--warn:#ffd36b;--warnbg:#3d3213;--bad:#ff9d94;--badbg:#431e1b;--leaf:#6fd49b}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:21px;line-height:1.5}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:2.1rem;line-height:1.15;margin:.2em 0;color:var(--rose)}
+h2{font-size:1.45rem;line-height:1.3;margin:.2em 0 .6em}
+p{margin:.5em 0}
+.sub{color:var(--soft)}
+button{font:inherit;font-weight:bold;cursor:pointer;border-radius:16px;border:3px solid var(--rose);background:var(--card);color:var(--rose-d);padding:14px 18px;min-height:56px;width:100%;margin:6px 0;text-align:left}
+button:focus-visible{outline:4px solid var(--ink);outline-offset:2px}
+button.main{background:var(--rose);color:#fff;text-align:center;border-color:var(--rose-d)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.main{color:#241520}}
+button:disabled{cursor:default}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:20px;margin:14px 0}
+.tag{display:inline-block;padding:4px 12px;border-radius:99px;font-size:.8rem;font-weight:bold;background:var(--line);color:var(--ink)}
+.path{display:flex;align-items:center;justify-content:space-between;margin:10px 0}
+.stage{text-align:center;font-size:.7rem;color:var(--soft);flex:1}
+.flower{font-size:2rem;filter:grayscale(1);opacity:.35;transition:all .5s}
+.flower.on{filter:none;opacity:1;transform:scale(1.2)}
+.bar{height:10px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .4s}
+.fb{border-radius:16px;padding:14px 16px;margin:12px 0;border:2px solid}
+.fb.ok{background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+.fb.no{background:var(--warnbg);color:var(--warn);border-color:var(--warn)}
+.fb b{display:block;font-size:1.15rem}
+.fb span{color:var(--ink)}
+.sem{display:flex;gap:8px}
+.sem button{text-align:center;padding:12px 6px;font-size:.95rem}
+.sem .v{border-color:var(--ok);color:var(--ok)}.sem .a{border-color:var(--warn);color:var(--warn)}.sem .r{border-color:var(--bad);color:var(--bad)}
+.dot{font-size:1.6rem;display:block}
+.picked{background:var(--line)}
+ul.keys{padding-left:1.2em}ul.keys li{margin:.5em 0}
+.note{font-size:.8rem;color:var(--soft)}
+.row{display:flex;gap:8px}.row button{text-align:center}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var CARDS=[
+{t:"mito",q:"Si me siento bien, ya puedo dejar la pastilla.",a:false,e:"La pastilla se toma todos los días, aunque una se sienta bien, hasta que su médico indique terminar."},
+{t:"mito",q:"Puedo tomar la pastilla con comida o sin comida.",a:true,e:"Lo importante es tomarla todos los días, a la misma hora."},
+{t:"mito",q:"Si me duelen las articulaciones, es mejor aguantarme y no decir nada.",a:false,e:"Hay formas de aliviar el dolor. Avisar a tiempo ayuda a no abandonar el tratamiento."},
+{t:"mito",q:"Caminar y moverme ayuda a cuidar mis huesos.",a:true,e:"Esta pastilla puede debilitar los huesos. Caminar, comer bien y hacerse los controles que indique el médico los cuidan."},
+{t:"mito",q:"Cuando tomo la pastilla ya no necesito ir a mis controles.",a:false,e:"Los controles son parte del tratamiento. Sirven para revisar cómo se siente y cómo están sus huesos."},
+{t:"que",q:"Se me olvidó la pastilla de ayer. ¿Qué hago?",o:["Tomar doble dosis hoy","Tomar la de hoy a la hora de siempre y seguir normal","Dejar de tomarla"],c:1,e:"Nunca se toma doble dosis. Si se acuerda el mismo día, tómela; si ya casi toca la siguiente, siga con su horario. Ante la duda, pregunte."},
+{t:"que",q:"Mi vecina me recomienda unas pastillas naturales para los bochornos.",o:["Las tomo, son naturales","Pregunto primero a mi médico o farmacéutico","Las tomo, pero la mitad"],c:1,e:"Algunos productos naturales actúan como estrógenos y pueden estorbar al tratamiento. Siempre consulte antes."},
+{t:"que",q:"Los sofocos no me dejan dormir.",o:["Dejo la pastilla","Se lo cuento al equipo de salud y pruebo consejos como ropa ligera y cuarto fresco","Aguanto en silencio"],c:1,e:"Es un efecto frecuente y se puede sobrellevar. Contarlo permite recibir ayuda sin dejar el tratamiento."},
+{t:"que",q:"Voy a viajar unos días.",o:["Dejo las pastillas en casa","Las llevo en el equipaje de mano y sigo mi horario","Me tomo todas antes de irme"],c:1,e:"Lleve pastillas de sobra, en la maleta de mano, y mantenga la misma hora de siempre."},
+{t:"que",q:"Llevo semanas muy triste y sin ganas de nada.",o:["Es normal, no digo nada","Se lo cuento al equipo de salud: hay apoyo","Dejo el tratamiento"],c:1,e:"Lo que siente importa. Hablarlo permite recibir apoyo emocional. No está sola."},
+{t:"sem",q:"Bochornos (calor repentino) y cansancio leve.",c:"v",e:"Es esperable. Coméntelo en su próximo control para recibir consejos."},
+{t:"sem",q:"Dolor en articulaciones que no me deja hacer mis cosas.",c:"a",e:"Consulte pronto. Hay opciones para aliviarlo, y no hay que dejar la pastilla por cuenta propia."},
+{t:"sem",q:"Sangrado vaginal que no esperaba.",c:"a",e:"Consulte pronto con su médico. Cualquier sangrado después de la menopausia debe revisarse."},
+{t:"sem",q:"Dolor e hinchazón repentina en una pierna.",c:"r",e:"Consulta urgente. Puede ser un problema de circulación y requiere atención inmediata."},
+{t:"sem",q:"Dolor fuerte después de una caída o golpe.",c:"r",e:"Consulta urgente. Los huesos pueden estar más frágiles y puede haber una fractura."}
+];
+var NAMES={mito:["Mito o verdad","#c2185b"],que:["¿Qué hago si...?","#b26a00"],sem:["Semáforo de síntomas","#1b7a4b"]};
+var STAGES=["Año 1","Año 2","Año 3","Año 4","Año 5"];
+var deck,i,done,answered,app=document.getElementById("app");
+
+function shuffle(a){a=a.slice();for(var k=a.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=a[k];a[k]=a[j];a[j]=t}return a}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+
+function start(){
+ app.innerHTML='<p style="font-size:3rem;margin:0">🌸</p><h1>Mi Camino Rosa</h1><p class="sub">Un juego para conversar y aprender sobre su pastilla de anastrozol. Aquí nadie pierde: si duda, se aprende juntas.</p>'+
+ '<div class="card"><h2>Cómo se juega</h2><p>Recorra los 5 años del camino. En cada paso habrá una pregunta corta. Cuando responda, verá una explicación sencilla. Cada 3 preguntas se ilumina una flor 🌷</p></div>'+
+ '<button class="main" onclick="begin()">Empezar a jugar</button>'+
+ '<p class="note">Este juego refuerza lo aprendido, pero no reemplaza la consulta con su médico.</p>';
+ window.scrollTo(0,0);
+}
+function begin(){deck=shuffle(CARDS);i=0;done=0;answered=false;show()}
+
+function header(){
+ var f="";for(var k=0;k<5;k++){f+='<div class="stage"><div class="flower'+(Math.floor(done/3)>k?' on':'')+'">🌷</div>'+STAGES[k]+'</div>'}
+ return '<div class="path">'+f+'</div><div class="bar"><i style="width:'+(done/deck.length*100)+'%"></i></div><p class="note">Pregunta '+(i+1)+' de '+deck.length+'</p>';
+}
+function show(){
+ var c=deck[i],n=NAMES[c.t],h=header()+'<div class="card"><span class="tag">'+n[0]+'</span><h2>'+esc(c.q)+'</h2>';
+ if(c.t=="mito"){
+  h+='<div class="row"><button onclick="ans(true)">🙂 Verdad</button><button onclick="ans(false)">🙁 Mito</button></div>';
+ }else if(c.t=="que"){
+  for(var k=0;k<c.o.length;k++)h+='<button onclick="ans('+k+')">'+esc(c.o[k])+'</button>';
+ }else{
+  h+='<p class="sub">¿Qué color le toca a este síntoma?</p><div class="sem"><button class="v" onclick="ans(\'v\')"><span class="dot">🟢</span>Lo comento en mi control</button><button class="a" onclick="ans(\'a\')"><span class="dot">🟡</span>Consulto pronto</button><button class="r" onclick="ans(\'r\')"><span class="dot">🔴</span>Consulta urgente</button></div>';
+ }
+ h+='<div id="fb" aria-live="polite"></div></div>';
+ app.innerHTML=h;answered=false;window.scrollTo(0,0);
+}
+function ans(v){
+ if(answered)return;answered=true;
+ var c=deck[i],ok=(c.t=="mito")?v===c.a:(c.t=="que")?v===c.c:v===c.c;
+ var msg=ok?"¡Muy bien! 🌟":"Buen intento, así se aprende 💛";
+ var btns=document.querySelectorAll(".card button");for(var k=0;k<btns.length;k++)btns[k].disabled=true;
+ done++;
+ var last=i>=deck.length-1;
+ document.getElementById("fb").innerHTML='<div class="fb '+(ok?'ok':'no')+'"><b>'+msg+'</b><span>'+esc(c.e)+'</span></div><button class="main" onclick="next()">'+(last?'Llegar a la meta 🌷':'Siguiente pregunta')+'</button>';
+ document.querySelector(".bar i").style.width=(done/deck.length*100)+"%";
+ var fl=document.querySelectorAll(".flower");for(var m=0;m<5;m++)if(Math.floor(done/3)>m)fl[m].classList.add("on");
+ document.getElementById("fb").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function next(){i++;if(i>=deck.length)end();else show()}
+function end(){
+ app.innerHTML='<p style="font-size:3rem;margin:0">🌷🌷🌷</p><h1>¡Llegamos al campo de flores!</h1><p>Todas ganan. Gracias por jugar y por cuidarse.</p>'+
+ '<div class="card"><h2>Para recordar en casa</h2><ul class="keys">'+
+ '<li>Una pastilla al día, a la misma hora.</li><li>No la deje sin hablar con su médico.</li><li>Nunca tome doble dosis.</li><li>Cuente sus molestias: hay ayuda.</li><li>Cuide sus huesos: camine y vaya a sus controles.</li><li>Antes de tomar productos naturales o medicinas nuevas, consulte.</li><li>🔴 Dolor fuerte tras caída, pierna hinchada y dolorosa o falta de aire: consulta urgente.</li></ul></div>'+
+ '<button class="main" onclick="begin()">Jugar otra vez</button><button class="main" onclick="start()">Volver al inicio</button>';
+ window.scrollTo(0,0);
+}
+start();
+</script>
+</body>
+</html>
